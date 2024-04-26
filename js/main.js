@@ -75,6 +75,9 @@ Vue.component('product', {
         },
         removeToCart: function() {
           this.$emit('remove-from-cart', this.variants[this.selectedVariant].variantId)
+        },
+        sortedReviews() {
+          return this.reviews.sort((a, b) => b.priority - a.priority);
         }
       },
       computed: {
@@ -126,6 +129,11 @@ Vue.component('product', {
       <p>
         <label for="rating">Rating:</label>
         <select id="rating" v-model.number="rating">
+          <option>10</option>
+          <option>9</option>
+          <option>8</option>
+          <option>7</option>
+          <option>6</option>
           <option>5</option>
           <option>4</option>
           <option>3</option>
@@ -143,6 +151,7 @@ Vue.component('product', {
         No
         <input type="radio" name="vibor" value="No" v-model="recommend"/>
       </label>
+
 
       <p>
         <input type="submit" value="Submit">  
@@ -165,7 +174,8 @@ Vue.component('product', {
           let productReview = {
             name: this.name,
             review: this.review,
-            rating: this.rating
+            rating: this.rating,
+            priority: this.rating
           }
           eventBus.$emit('review-submitted', productReview)
           this.name = null
@@ -177,6 +187,18 @@ Vue.component('product', {
           if(!this.review) this.errors.push("Review required.")
           if(!this.rating) this.errors.push("Rating required.")
         }
+      },
+      updatePriority() {
+        this.$emit('update-priority', this.selectedPriority);
+      }
+    },
+    computed: {
+      cardColor() {
+        if (this.selectedPriority >= 1 && this.selectedPriority <= 5) {
+          return 'green';
+        } else if (this.selectedPriority >= 6 && this.selectedPriority <= 10) {
+          return 'red';
+        } 
       }
     }
   })
@@ -187,13 +209,13 @@ Vue.component('product', {
         type: Array,
         required: false
       },
-      shipping: {
+      premium: {
+        type: Boolean,
         required: true
       }
     },
     template: `
       <div>
-      
         <ul>
           <span class="tabs" 
                 :class="{ activeTab: selectedTab === tab }"
@@ -202,28 +224,26 @@ Vue.component('product', {
                 :key="tab"
           >{{ tab }}</span>
         </ul>
-
+  
         <div v-show="selectedTab === 'Reviews'">
             <p v-if="!reviews.length">There are no reviews yet.</p>
             <ul v-else>
-                <li v-for="(review, index) in reviews" :key="index">
-                  <p>{{ review.name }}</p>
-                  <p>Rating:{{ review.rating }}</p>
-                  <p>{{ review.review }}</p>
-                </li>
+              <li v-for="(review, index) in sortedReviews" :key="index" :style="{ color: reviewColors[index] }">
+                <p>{{ review.name }}</p>
+                <p>Rating: {{ review.rating }}</p>
+                <p>{{ review.review }}</p>
+              </li>
             </ul>
         </div>
-
+  
         <div v-show="selectedTab === 'Make a Review'">   
           <product-review></product-review>
         </div>
-
-        <div>
-
+  
         <div v-show="selectedTab === 'Shipping'">
           <p>{{ shipping }}</p>
         </div>
-
+  
         <div v-show="selectedTab === 'Details'">
           <ul>
             <li v-for="detail in details">{{ detail }}</li>
@@ -231,62 +251,34 @@ Vue.component('product', {
         </div>
     
       </div>
-    
-      </div>
     `,
-
-
     data() {
       return {
-        tabs: ['Reviews', 'Make a Review','Shipping', 'Details'],
+        tabs: ['Reviews', 'Make a Review', 'Shipping', 'Details'],
         selectedTab: 'Reviews',
         details: ['80% cotton', '20% polyester', 'Gender-neutral'],
-      }
+      };
     },
     computed: {
       shipping() {
-        if (this.premium) {
-          return "Free"
-        }
-          return 2.99
+        return this.premium ? "Free" : 2.99;
+      },
+      sortedReviews() {
+        return this.reviews.sort((a, b) => b.priority - a.priority);
+      },
+      reviewColors() {
+        return this.sortedReviews.map(review => {
+          if (review.priority >= 1 && review.priority <= 5) {
+            return 'green';
+          } else if (review.priority >= 6 && review.priority <= 10) {
+            return 'red';
+          } else {
+            return '';
+          }
+        });
       }
     }
   })
-
-// Vue.component('info-tabs', {
-//     props: {
-//       shipping: {
-//         required: true
-//       },
-//       details: {
-//         type: Array,
-//         required: true
-//       }
-//     },
-//     template: `
-//       <div>
-      
-//         <ul>
-//           <span class="tabs" 
-//                 :class="{ activeTab: selectedTab === tab }"
-//                 v-for="(tab, index) in tabs"
-//                 @click="selectedTab = tab"
-//                 :key="tab"
-//           >{{ tab }}</span>
-//         </ul>
-
-        
-//     `,
-//     data() {
-//       return {
-//         tabs: ['Shipping', 'Details'],
-//         selectedTab: 'Shipping'
-//       }
-//     }
-//   })
-
-
-
   
   let app = new Vue({
       el: '#app',
