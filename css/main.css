@@ -78,7 +78,7 @@ textarea {
     height: 60px;
 }
 
-.tab {
+.tabs {
     margin-left: 20px;
     cursor: pointer;
 }
@@ -86,4 +86,11 @@ textarea {
 .activeTab {
     color: #16C0B0;
     text-decoration: underline;
+}
+
+.change_cart {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    
 }
